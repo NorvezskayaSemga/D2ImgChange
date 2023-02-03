@@ -1,16 +1,21 @@
 ﻿Public Class Form1
 
     Sub run() Handles Button1.Click
+
+        ' indicator of how much I don't care
         Dim initialFramePath As String = "TestResouces\MenuNewSkirmishSingleBackground.png"
         Dim destinationFramePath As String = "TestResouces\DLG_RANDOM_SCENARIO_BG.png"
         Dim maskDirectory = "TestResouces\mask"
 
+        ' read stuff
         Dim initialImage As ImageIO.ColorMap = ImageIO.ReadFile(initialFramePath)
         Dim destinationImage As ImageIO.ColorMap = ImageIO.ReadFile(destinationFramePath)
         Dim mask() As ImageIO.ColorMap = ImageIO.ReadDirectory(maskDirectory)
 
+        ' mix images
         Dim mixed() As ImageIO.ColorMap = GenerateAnimation(initialImage, destinationImage, mask, 5, 10)
 
+        ' clear output folder
         Dim outDir As String = ".\Result"
         If IO.Directory.Exists(outDir) Then
             Dim files() As String = IO.Directory.GetFiles(outDir)
@@ -20,6 +25,8 @@
         Else
             IO.Directory.CreateDirectory(outDir)
         End If
+
+        'save result
         For i As Integer = 0 To UBound(mixed) Step 1
             Call ImageIO.WriteFile(outDir & "\mixed_" & Format(i, "0000") & ".png", mixed(i), Imaging.ImageFormat.Png)
         Next i
@@ -30,6 +37,8 @@
         Dim destinationImageFirstFrame(initialImage.xBound, initialImage.yBound) As Integer
         Dim initialImageWeightMap(UBound(mask))(,) As Double
         Dim result(UBound(mask)) As ImageIO.ColorMap
+
+        ' find frames where a pixel becomes one from destinationImage
         For j As Integer = 0 To initialImage.yBound Step 1
             For i As Integer = 0 To initialImage.xBound Step 1
                 destinationImageFirstFrame(i, j) = UBound(mask)
@@ -51,6 +60,7 @@
         Sub(n As Integer)
             ReDim initialImageWeightMap(n)(initialImage.xBound, initialImage.yBound)
             Dim weightMap(initialImage.xBound, initialImage.yBound) As Double
+            ' create rough transparancy map for frame n. Will be applied for inital image
             For j As Integer = 0 To initialImage.yBound Step 1
                 For i As Integer = 0 To initialImage.xBound Step 1
                     Dim d As Integer = destinationImageFirstFrame(i, j) - n
@@ -65,6 +75,8 @@
                     End If
                 Next i
             Next j
+
+            ' apply median smooth
             Dim w As Integer = transparancyChangeSmoothPixelsWindow
             Dim weightSum, weightN As Double
             For j As Integer = 0 To initialImage.yBound Step 1
@@ -85,6 +97,7 @@
         System.Threading.Tasks.Parallel.For(0, mask.Length,
         Sub(n As Integer)
             result(n) = New ImageIO.ColorMap(initialImage.xBound + 1, initialImage.yBound + 1)
+            ' mix images for frame n
             For j As Integer = 0 To initialImage.yBound Step 1
                 For i As Integer = 0 To initialImage.xBound Step 1
                     result(n).pixels(i, j) = ImageIO.ColorMap.Mix(initialImage.pixels(i, j), _
@@ -127,7 +140,7 @@ Public Class ImageIO
             Next j
         End Sub
 
-        Public Function ToVBitmap() As Bitmap
+        Public Function ToBitmap() As Bitmap
             Dim img As New Bitmap(xBound + 1, yBound + 1)
             For j As Integer = 0 To yBound Step 1
                 For i As Integer = 0 To xBound Step 1
@@ -171,7 +184,7 @@ Public Class ImageIO
     End Function
 
     Public Shared Sub WriteFile(path As String, content As ColorMap, format As Imaging.ImageFormat)
-        content.ToVBitmap.Save(path, format)
+        content.ToBitmap.Save(path, format)
     End Sub
 
 End Class
