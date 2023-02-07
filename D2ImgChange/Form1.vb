@@ -49,7 +49,7 @@
 
     Class Settings
         Public transparancyChangeFramesWindow As Integer = 2
-        Public transparancyChangeSmoothPixelsWindow As Integer = 10
+        Public transparancyChangeSmoothPixelsWindow As Integer = 25
         Public initialTransparancyGradientFramesWindow As Integer = 3
     End Class
 
@@ -120,18 +120,28 @@
 
             ' apply median smooth
             Dim w As Integer = s.transparancyChangeSmoothPixelsWindow
-            Dim weightSum, weightN As Double
+            Dim weightSum, weightN, sumI(initialImage.xBound) As Double
+            Dim p1, p2, q1, q2 As Integer
             For j As Integer = 0 To initialImage.yBound Step 1
+                weightSum = 0
+                p1 = Math.Max(j - w, 0)
+                p2 = Math.Min(j + w, initialImage.yBound)
+                weightN = 1 / (p2 - p1 + 1)
+                For i As Integer = 0 To initialImage.xBound Step 1
+                    sumI(i) = 0
+                    For p As Integer = p1 To p2 Step 1
+                        sumI(i) += weightMap(i, p)
+                    Next p
+                    sumI(i) *= weightN
+                Next i
                 For i As Integer = 0 To initialImage.xBound Step 1
                     weightSum = 0
-                    weightN = 0
-                    For p As Integer = Math.Max(j - w, 0) To Math.Min(j + w, initialImage.yBound) Step 1
-                        For q As Integer = Math.Max(i - w, 0) To Math.Min(i + w, initialImage.xBound) Step 1
-                            weightSum += weightMap(q, p)
-                            weightN += 1
-                        Next q
-                    Next p
-                    destinationImageWeightMap(n)(i, j) = weightSum / weightN
+                    q1 = Math.Max(i - w, 0)
+                    q2 = Math.Min(i + w, initialImage.xBound)
+                    For q As Integer = q1 To q2 Step 1
+                        weightSum += sumI(q)
+                    Next q
+                    destinationImageWeightMap(n)(i, j) = weightSum / (q2 - q1 + 1)
                 Next i
             Next j
         End Sub)
