@@ -163,97 +163,97 @@
     <Content Include="TestResouces\mask.avi">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestResouces\mask\frameMask00.png">
+    <Content Include="TestResouces\mask\gen_0000.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestResouces\mask\frameMask01.png">
+    <Content Include="TestResouces\mask\gen_0001.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestResouces\mask\frameMask02.png">
+    <Content Include="TestResouces\mask\gen_0002.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestResouces\mask\frameMask03.png">
+    <Content Include="TestResouces\mask\gen_0003.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestResouces\mask\frameMask04.png">
+    <Content Include="TestResouces\mask\gen_0004.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestResouces\mask\frameMask05.png">
+    <Content Include="TestResouces\mask\gen_0005.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestResouces\mask\frameMask06.png">
+    <Content Include="TestResouces\mask\gen_0006.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestResouces\mask\frameMask07.png">
+    <Content Include="TestResouces\mask\gen_0007.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestResouces\mask\frameMask08.png">
+    <Content Include="TestResouces\mask\gen_0008.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestResouces\mask\frameMask09.png">
+    <Content Include="TestResouces\mask\gen_0009.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestResouces\mask\frameMask10.png">
+    <Content Include="TestResouces\mask\gen_0010.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestResouces\mask\frameMask11.png">
+    <Content Include="TestResouces\mask\gen_0011.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestResouces\mask\frameMask12.png">
+    <Content Include="TestResouces\mask\gen_0012.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestResouces\mask\frameMask13.png">
+    <Content Include="TestResouces\mask\gen_0013.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestResouces\mask\frameMask14.png">
+    <Content Include="TestResouces\mask\gen_0014.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestResouces\mask\frameMask15.png">
+    <Content Include="TestResouces\mask\gen_0015.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestResouces\mask\frameMask16.png">
+    <Content Include="TestResouces\mask\gen_0016.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestResouces\mask\frameMask17.png">
+    <Content Include="TestResouces\mask\gen_0017.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestResouces\mask\frameMask18.png">
+    <Content Include="TestResouces\mask\gen_0018.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestResouces\mask\frameMask19.png">
+    <Content Include="TestResouces\mask\gen_0019.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestResouces\mask\frameMask20.png">
+    <Content Include="TestResouces\mask\gen_0020.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestResouces\mask\frameMask21.png">
+    <Content Include="TestResouces\mask\gen_0021.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestResouces\mask\frameMask22.png">
+    <Content Include="TestResouces\mask\gen_0022.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestResouces\mask\frameMask23.png">
+    <Content Include="TestResouces\mask\gen_0023.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestResouces\mask\frameMask24.png">
+    <Content Include="TestResouces\mask\gen_0024.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestResouces\mask\frameMask25.png">
+    <Content Include="TestResouces\mask\gen_0025.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestResouces\mask\frameMask26.png">
+    <Content Include="TestResouces\mask\gen_0026.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestResouces\mask\frameMask27.png">
+    <Content Include="TestResouces\mask\gen_0027.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestResouces\mask\frameMask28.png">
+    <Content Include="TestResouces\mask\gen_0028.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestResouces\mask\frameMask29.png">
+    <Content Include="TestResouces\mask\gen_0029.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestResouces\mask\frameMask30.png">
+    <Content Include="TestResouces\mask\gen_0030.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="TestResouces\MenuChooseRaceBackground.png">

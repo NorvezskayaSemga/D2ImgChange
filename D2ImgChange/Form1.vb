@@ -48,9 +48,8 @@
     End Sub
 
     Class Settings
-        Public transparancyChangeFramesWindow As Integer = 3
+        Public transparancyChangeFramesWindow As Integer = 2
         Public transparancyChangeSmoothPixelsWindow As Integer = 10
-        Public initialTransparancyGradientLen As Double = 0.4
         Public initialTransparancyGradientFramesWindow As Integer = 3
     End Class
 
@@ -59,7 +58,7 @@
                                mask() As ImageIO.ColorMap,
                                s As Settings) As ImageIO.ColorMap()
         Dim destinationImageFirstFrame(initialImage.xBound, initialImage.yBound) As Integer
-        Dim initialImageWeightMap(UBound(mask))(,) As Double
+        Dim destinationImageWeightMap(UBound(mask))(,) As Double
         Dim result(UBound(mask)) As ImageIO.ColorMap
 
         ' find frames where a pixel becomes one from destinationImage
@@ -72,7 +71,7 @@
         Sub(j As Integer)
             For i As Integer = 0 To initialImage.xBound Step 1
                 For n As Integer = 0 To UBound(mask) Step 1
-                    If mask(n).AverageRGB(i, j) > 250 Then
+                    If mask(n).AverageRGB(i, j) > 5 Then
                         destinationImageFirstFrame(i, j) = n
                         Exit For
                     End If
@@ -82,29 +81,40 @@
 
         System.Threading.Tasks.Parallel.For(0, mask.Length,
         Sub(n As Integer)
-            ReDim initialImageWeightMap(n)(initialImage.xBound, initialImage.yBound)
+            ReDim destinationImageWeightMap(n)(initialImage.xBound, initialImage.yBound)
             Dim weightMap(initialImage.xBound, initialImage.yBound) As Double
             ' create rough transparancy map for frame n. Will be applied for inital image
+            'Dim gradientLen As Integer = 0
+            'If n < s.initialTransparancyGradientFramesWindow Then
+            '    For j As Integer = 0 To initialImage.yBound Step 1
+            '        For i As Integer = gradientLen To initialImage.xBound Step 1
+            '            If mask(n + s.initialTransparancyGradientFramesWindow).AverageRGB(i, j) < 5 Then
+            '                gradientLen = i
+            '                Exit For
+            '            End If
+            '        Next i
+            '    Next j
+            'End If
             For j As Integer = 0 To initialImage.yBound Step 1
                 For i As Integer = 0 To initialImage.xBound Step 1
                     Dim d As Integer = destinationImageFirstFrame(i, j) - n
                     If d <= 0 Then
-                        weightMap(i, j) = 0
+                        weightMap(i, j) = mask(n).AverageRGB(i, j) / CDbl(Byte.MaxValue)
                     ElseIf d < s.transparancyChangeFramesWindow Then
-                        weightMap(i, j) = d / s.transparancyChangeFramesWindow
+                        weightMap(i, j) = 1 - d / s.transparancyChangeFramesWindow
+                        Dim m As Double = mask(n).AverageRGB(i, j) / CDbl(Byte.MaxValue)
+                        If m > 0 Then weightMap(i, j) *= m
                     ElseIf d >= s.transparancyChangeFramesWindow Then
-                        weightMap(i, j) = 1
+                        weightMap(i, j) = 0
                     Else
                         Throw New Exception
                     End If
-                    weightMap(i, j) *= mask(n).AverageRGB(i, j) / CDbl(Byte.MaxValue)
-                    If n < s.initialTransparancyGradientFramesWindow _
-                    And i < initialImage.xBound * s.initialTransparancyGradientLen Then
-                        Dim gMultiplier As Double = (i * n) / (initialImage.xBound * _
-                                                               s.initialTransparancyGradientLen * _
-                                                               s.initialTransparancyGradientFramesWindow)
-                        weightMap(i, j) *= gMultiplier
-                    End If
+                    'If i < gradientLen Then
+                    '    Dim m1 As Double = 1
+                    '    Dim m2 As Double = 0.5 + 0.5 * n / s.initialTransparancyGradientFramesWindow
+                    '    Dim gMultiplier As Double = m1 - (m1 - m2) * i / gradientLen
+                    '    weightMap(i, j) *= gMultiplier
+                    'End If
                 Next i
             Next j
 
@@ -121,7 +131,7 @@
                             weightN += 1
                         Next q
                     Next p
-                    initialImageWeightMap(n)(i, j) = weightSum / weightN
+                    destinationImageWeightMap(n)(i, j) = weightSum / weightN
                 Next i
             Next j
         End Sub)
@@ -134,8 +144,8 @@
                 For i As Integer = 0 To initialImage.xBound Step 1
                     result(n).pixels(i, j) = ImageIO.ColorMap.Mix(initialImage.pixels(i, j), _
                                                                   destinationImage.pixels(i, j), _
-                                                                  initialImageWeightMap(n)(i, j), _
-                                                                  1 - initialImageWeightMap(n)(i, j))
+                                                                  1 - destinationImageWeightMap(n)(i, j), _
+                                                                   destinationImageWeightMap(n)(i, j))
                 Next i
             Next j
         End Sub)
@@ -318,9 +328,6 @@ Public Class MaskGenerator
         Public acceleration As Double
 
         Public Sub New(nFrames As Integer, g As Integer)
-            If nFrames <> 33 Then
-                g = g
-            End If
             ReDim pos(nFrames), velocity(nFrames)
             generation = g
         End Sub
