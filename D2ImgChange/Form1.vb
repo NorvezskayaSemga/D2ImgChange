@@ -25,7 +25,7 @@
         End If
 
         ' mix images
-        Dim mixed() As ImageIO.ColorMap = GenerateAnimation(initialImage, destinationImage, mask, 3, 10)
+        Dim mixed() As ImageIO.ColorMap = GenerateAnimation(initialImage, destinationImage, mask, New Settings)
 
         ' clear output folder
         Dim outDir As String = ".\Result"
@@ -47,7 +47,17 @@
         End If
     End Sub
 
-    Function GenerateAnimation(initialImage As ImageIO.ColorMap, destinationImage As ImageIO.ColorMap, mask() As ImageIO.ColorMap, transparancyChangeFramesWindow As Integer, transparancyChangeSmoothPixelsWindow As Integer) As ImageIO.ColorMap()
+    Class Settings
+        Public transparancyChangeFramesWindow As Integer = 3
+        Public transparancyChangeSmoothPixelsWindow As Integer = 10
+        Public initialTransparancyGradientLen As Double = 0.4
+        Public initialTransparancyGradientFramesWindow As Integer = 3
+    End Class
+
+    Function GenerateAnimation(initialImage As ImageIO.ColorMap,
+                               destinationImage As ImageIO.ColorMap,
+                               mask() As ImageIO.ColorMap,
+                               s As Settings) As ImageIO.ColorMap()
         Dim destinationImageFirstFrame(initialImage.xBound, initialImage.yBound) As Integer
         Dim initialImageWeightMap(UBound(mask))(,) As Double
         Dim result(UBound(mask)) As ImageIO.ColorMap
@@ -80,19 +90,26 @@
                     Dim d As Integer = destinationImageFirstFrame(i, j) - n
                     If d <= 0 Then
                         weightMap(i, j) = 0
-                    ElseIf d < transparancyChangeFramesWindow Then
-                        weightMap(i, j) = d / transparancyChangeFramesWindow
-                    ElseIf d >= transparancyChangeFramesWindow Then
+                    ElseIf d < s.transparancyChangeFramesWindow Then
+                        weightMap(i, j) = d / s.transparancyChangeFramesWindow
+                    ElseIf d >= s.transparancyChangeFramesWindow Then
                         weightMap(i, j) = 1
                     Else
                         Throw New Exception
                     End If
                     weightMap(i, j) *= mask(n).AverageRGB(i, j) / CDbl(Byte.MaxValue)
+                    If n < s.initialTransparancyGradientFramesWindow _
+                    And i < initialImage.xBound * s.initialTransparancyGradientLen Then
+                        Dim gMultiplier As Double = (i * n) / (initialImage.xBound * _
+                                                               s.initialTransparancyGradientLen * _
+                                                               s.initialTransparancyGradientFramesWindow)
+                        weightMap(i, j) *= gMultiplier
+                    End If
                 Next i
             Next j
 
             ' apply median smooth
-            Dim w As Integer = transparancyChangeSmoothPixelsWindow
+            Dim w As Integer = s.transparancyChangeSmoothPixelsWindow
             Dim weightSum, weightN As Double
             For j As Integer = 0 To initialImage.yBound Step 1
                 For i As Integer = 0 To initialImage.xBound Step 1
