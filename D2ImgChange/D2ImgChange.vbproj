@@ -86,7 +86,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="RandomStackGenerator">
-      <HintPath>..\..\D2StackRandomizer\RandomStackGenerator\bin\Debug\RandomStackGenerator.dll</HintPath>
+      <HintPath>..\..\RandomStackGenerator\RandomStackGenerator\bin\Debug\RandomStackGenerator.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />

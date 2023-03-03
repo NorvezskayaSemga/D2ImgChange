@@ -1,6 +1,6 @@
 ﻿Public Class Form1
 
-    Sub run() Handles Button1.Click
+    Private Sub run(sender As System.Object, e As System.EventArgs) Handles Button1.Click
 
         ' indicator of how much I don't care
         Dim initialFramePath As String = "TestResouces\MenuNewSkirmishSingleBackground.png"
@@ -162,6 +162,63 @@
         Return result
     End Function
 
+    Private Sub runColorReplace(sender As System.Object, e As System.EventArgs) Handles Button2.Click
+
+        ' indicator of how much I don't care
+        Dim inputDirectory = "E:\Disciples II\Новая папка\anim_frames"
+        Dim outDir As String = inputDirectory & "_result"
+
+        Dim frames() As ImageIO.ColorMap
+
+        frames = ImageIO.ReadDirectory(inputDirectory)
+        Call RecreateDir(outDir)
+
+        Dim colorToReplace As Color = Color.Black
+        Dim destinationColor As Color = Color.FromArgb(0, Color.Black)
+        Dim minBrightness As Double = ImageIO.ColorMap.Brightness(Color.FromArgb(7, 7, 5))
+        Dim result(UBound(frames)) As ImageIO.ColorMap
+
+        System.Threading.Tasks.Parallel.For(0, result.Length,
+        Sub(n As Integer)
+            result(n) = New ImageIO.ColorMap(frames(n))
+            For j As Integer = 0 To frames(n).yBound Step 1
+                For i As Integer = 0 To frames(n).xBound Step 1
+                    If (frames(n).pixels(i, j).R = colorToReplace.R _
+                    And frames(n).pixels(i, j).G = colorToReplace.G _
+                    And frames(n).pixels(i, j).B = colorToReplace.B) _
+                    Or frames(n).Brightness(i, j) <= minBrightness Then
+                        result(n).pixels(i, j) = destinationColor
+                    End If
+                Next i
+            Next j
+        End Sub)
+
+        System.Threading.Tasks.Parallel.For(0, result.Length,
+        Sub(n As Integer)
+            Dim print As Boolean = False
+            If n > 0 Then
+                For j As Integer = 0 To frames(n).yBound Step 1
+                    For i As Integer = 0 To frames(n).xBound Step 1
+                        If (frames(n).pixels(i, j).R <> frames(n - 1).pixels(i, j).R _
+                        Or frames(n).pixels(i, j).G <> frames(n - 1).pixels(i, j).G _
+                        Or frames(n).pixels(i, j).B <> frames(n - 1).pixels(i, j).B _
+                        Or frames(n).pixels(i, j).A <> frames(n - 1).pixels(i, j).A) Then
+                            print = True
+                            Exit For
+                        End If
+                    Next i
+                    If print Then Exit For
+                Next j
+            Else
+                print = True
+            End If
+            If print Then
+                Call ImageIO.WriteFile(outDir & "\replaced_" & Format(n, "0000") & ".png", result(n), Imaging.ImageFormat.Png)
+            End If
+        End Sub)
+        End
+    End Sub
+
 End Class
 
 Public Class ImageIO
@@ -178,6 +235,16 @@ Public Class ImageIO
             For j As Integer = 0 To yBound Step 1
                 For i As Integer = 0 To xBound Step 1
                     pixels(i, j) = img.GetPixel(i, j)
+                Next i
+            Next j
+        End Sub
+        Public Sub New(ByRef img As ColorMap)
+            xBound = img.xBound
+            yBound = img.yBound
+            ReDim pixels(xBound, yBound)
+            For j As Integer = 0 To yBound Step 1
+                For i As Integer = 0 To xBound Step 1
+                    pixels(i, j) = Color.FromArgb(img.pixels(i, j).A, img.pixels(i, j))
                 Next i
             Next j
         End Sub
@@ -202,8 +269,11 @@ Public Class ImageIO
             Return img
         End Function
 
+        Public Shared Function Brightness(c As Color) As Double
+            Return 0.2126 * c.R + 0.7152 * c.G + 0.0722 * c.B
+        End Function
         Public Function Brightness(i As Integer, j As Integer) As Double
-            Return 0.2126 * pixels(i, j).R + 0.7152 * pixels(i, j).G + 0.0722 * pixels(i, j).B
+            Return Brightness(pixels(i, j))
         End Function
         Public Function AverageRGB(i As Integer, j As Integer) As Double
             Return 0.333333333333 * (CDbl(pixels(i, j).R) + CDbl(pixels(i, j).G) + CDbl(pixels(i, j).B))
@@ -249,7 +319,7 @@ Public Class MaskGenerator
     Public Shared Function Create(width As Integer, height As Integer, nFrames As Integer) As ImageIO.ColorMap()
         Dim rnd As New RandomStackGenerator.RndValueGen()
         Dim bank As New RecollersBank(width, height, nFrames + 2)
-        Dim mask(nFrames - 1)(,), gagMask(,) As Double
+        Dim mask(nFrames - 1)(,) As Double
 
         For i As Integer = 0 To nFrames Step 1
             Call bank.AddRecollers()
