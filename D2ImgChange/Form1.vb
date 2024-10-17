@@ -299,6 +299,9 @@ Public Class ImageIO
         Public Shared Function Brightness(c As Color) As Double
             Return 0.2126 * c.R + 0.7152 * c.G + 0.0722 * c.B
         End Function
+        Public Shared Function BrightnessAlt(c As Color) As Double
+            Return 0.333333333333 * c.R + 0.333333333333 * c.G + 0.333333333333 * c.B
+        End Function
         Public Function Brightness(i As Integer, j As Integer) As Double
             Return Brightness(pixels(i, j))
         End Function
@@ -620,7 +623,7 @@ Public Class CombineAnimations
                 For i As Integer = 0 To UBound(frames) Step 1
                     For y As Integer = 0 To yBound Step 1
                         For x As Integer = 0 To xBound Step 1
-                            alpha = CInt(ImageIO.ColorMap.Brightness(frames(i).pixels(x, y)))
+                            alpha = CInt(ImageIO.ColorMap.BrightnessAlt(frames(i).pixels(x, y)))
                             alpha = Math.Max(0, Math.Min(Byte.MaxValue, alpha))
                             frames(i).SetAlpha(alpha, x, y)
                         Next x
@@ -683,11 +686,8 @@ Public Class CombineAnimations
     Private Sub AddFrames(n As Integer)
         Dim a As Animation = input(n)
         Threading.Tasks.Parallel.For(0, a.frames.Length, Sub(i As Integer)
-                                                             'Call AddFrame(output.frames(i), a.frames(i))
+                                                             Call AddFrame(output.frames(i), a.frames(i))
                                                          End Sub)
-        For i As Integer = 0 To UBound(a.frames)
-            Call AddFrame(output.frames(i), a.frames(i))
-        Next
     End Sub
     Private Sub AddFrame(ByRef out As ImageIO.ColorMap, ByRef a As ImageIO.ColorMap)
         Dim shiftX As Integer = CInt((out.xBound - a.xBound) * 0.5)
@@ -703,7 +703,7 @@ Public Class CombineAnimations
     Private Function CombineColors(lower As Color, upper As Color) As Color
         Dim a, r, g, b As Integer
         a = Math.Min(Byte.MaxValue, CInt(lower.A) + CInt(upper.A) - CInt(CDbl(lower.A) * CDbl(upper.A) * i255))
-       If a > 0 Then
+        If a > 0 Then
             Dim w As Double = i255 * CDbl(lower.A) * (CDbl(Byte.MaxValue) - CDbl(upper.A))
             r = Math.Min(Byte.MaxValue, CInt((CDbl(upper.R) * CDbl(upper.A) + CDbl(lower.R) * w) / a))
             g = Math.Min(Byte.MaxValue, CInt((CDbl(upper.G) * CDbl(upper.A) + CDbl(lower.G) * w) / a))
