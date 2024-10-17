@@ -1,6 +1,6 @@
 ﻿Public Class Form1
 
-    Private Sub run(sender As System.Object, e As System.EventArgs) Handles Button1.Click
+    Private Sub GenerateMask(sender As System.Object, e As System.EventArgs) Handles Button1.Click
 
         ' indicator of how much I don't care
         Dim initialFramePath As String = "TestResouces\MenuNewSkirmishSingleBackground.png"
@@ -219,6 +219,22 @@
         End
     End Sub
 
+    Private Sub combineAnimations(sender As System.Object, e As System.EventArgs) Handles Button3.Click
+
+        ' indicator of how much I don't care
+        Dim inputDirectory = "G:\D2\spells.anim\g000ss0071"
+        Dim outDir As String = inputDirectory & "_result"
+        Call RecreateDir(outDir)
+
+        Dim c As New CombineAnimations(inputDirectory, outDir)
+        c.Combine()
+
+        For i As Integer = 0 To UBound(c.output.frames) Step 1
+            Call ImageIO.WriteFile(outDir & "\combined_" & Format(i, "0000") & ".png", c.output.frames(i), Imaging.ImageFormat.Png)
+        Next i
+
+        End
+    End Sub
 End Class
 
 Public Class ImageIO
@@ -257,6 +273,17 @@ Public Class ImageIO
                     pixels(i, j) = Color.Black
                 Next i
             Next j
+        End Sub
+
+        Public Sub SetAlpha(alpha As Integer)
+            For j As Integer = 0 To yBound Step 1
+                For i As Integer = 0 To xBound Step 1
+                    Call SetAlpha(alpha, i, j)
+                Next i
+            Next j
+        End Sub
+        Public Sub SetAlpha(alpha As Integer, x As Integer, y As Integer)
+            pixels(x, y) = Color.FromArgb(alpha, pixels(x, y))
         End Sub
 
         Public Function ToBitmap() As Bitmap
@@ -563,5 +590,131 @@ Public Class MaskGenerator
         End Class
 
     End Class
+
+End Class
+
+Public Class CombineAnimations
+
+    Class Animation
+        Public frames() As ImageIO.ColorMap
+        Public xBound As Integer
+        Public yBound As Integer
+
+        Public Sub New(width As Integer, height As Integer, framesCount As Integer)
+            xBound = width - 1
+            yBound = height - 1
+            ReDim frames(framesCount - 1)
+            For i As Integer = 0 To UBound(frames) Step 1
+                frames(i) = New ImageIO.ColorMap(width, height)
+            Next i
+        End Sub
+
+        Public Sub New(dir As String)
+            frames = ImageIO.ReadDirectory(dir)
+
+            xBound = frames(0).xBound
+            yBound = frames(0).yBound
+
+            If dir.ToLower.EndsWith("direct") Or dir.ToLower.EndsWith("invert") Then
+                Dim alpha As Integer
+                For i As Integer = 0 To UBound(frames) Step 1
+                    For y As Integer = 0 To yBound Step 1
+                        For x As Integer = 0 To xBound Step 1
+                            alpha = CInt(ImageIO.ColorMap.Brightness(frames(i).pixels(x, y)))
+                            alpha = Math.Max(0, Math.Min(Byte.MaxValue, alpha))
+                            frames(i).SetAlpha(alpha, x, y)
+                        Next x
+                    Next y
+                Next i
+                If dir.ToLower.EndsWith("invert") Then
+                    For i As Integer = 0 To UBound(frames) Step 1
+                        For y As Integer = 0 To yBound Step 1
+                            For x As Integer = 0 To xBound Step 1
+                                frames(i).pixels(x, y) = Color.FromArgb(frames(i).pixels(x, y).A, _
+                                                                        Byte.MaxValue - frames(i).pixels(x, y).R, _
+                                                                        Byte.MaxValue - frames(i).pixels(x, y).G, _
+                                                                        Byte.MaxValue - frames(i).pixels(x, y).B)
+                            Next x
+                        Next y
+                    Next i
+                End If
+            End If
+        End Sub
+
+        Public Sub Clear()
+            For i As Integer = 0 To UBound(frames) Step 1
+                frames(i) = New ImageIO.ColorMap(xBound + 1, yBound + 1)
+                frames(i).SetAlpha(0)
+            Next i
+        End Sub
+
+    End Class
+
+    Public input() As Animation
+    Public output As Animation
+    Public inDir, outDir As String
+
+    Public Sub New(_inDir As String, _outDir As String)
+        inDir = _inDir
+        outDir = _outDir
+
+        Dim f() As String = IO.Directory.GetDirectories(inDir)
+        Array.Sort(f)
+        Dim maxX As Integer = 0
+        Dim maxY As Integer = 0
+        Dim framesCount As Integer = 0
+        ReDim input(UBound(f))
+        For i As Integer = 0 To UBound(f) Step 1
+            input(i) = New Animation(f(i))
+            maxX = Math.Max(maxX, input(i).xBound)
+            maxY = Math.Max(maxY, input(i).yBound)
+            framesCount = Math.Max(framesCount, input(i).frames.Length)
+        Next i
+        output = New Animation(maxX + 1, maxY + 1, framesCount)
+    End Sub
+
+    Public Sub Combine()
+        Call output.Clear()
+        For i As Integer = 0 To UBound(input) Step 1
+            Call AddFrames(i)
+        Next i
+    End Sub
+
+    Private Sub AddFrames(n As Integer)
+        Dim a As Animation = input(n)
+        Threading.Tasks.Parallel.For(0, a.frames.Length, Sub(i As Integer)
+                                                             'Call AddFrame(output.frames(i), a.frames(i))
+                                                         End Sub)
+        For i As Integer = 0 To UBound(a.frames)
+            Call AddFrame(output.frames(i), a.frames(i))
+        Next
+    End Sub
+    Private Sub AddFrame(ByRef out As ImageIO.ColorMap, ByRef a As ImageIO.ColorMap)
+        Dim shiftX As Integer = CInt((out.xBound - a.xBound) * 0.5)
+        Dim shiftY As Integer = CInt((out.yBound - a.yBound) * 0.5)
+        For y As Integer = 0 To a.yBound Step 1
+            For x As Integer = 0 To a.xBound Step 1
+                out.pixels(x + shiftX, y + shiftY) = CombineColors(out.pixels(x + shiftX, y + shiftY), a.pixels(x, y))
+            Next x
+        Next y
+    End Sub
+
+    Private Const i255 As Double = 1 / Byte.MaxValue
+    Private Function CombineColors(lower As Color, upper As Color) As Color
+        Dim a, r, g, b As Integer
+        a = Math.Min(Byte.MaxValue, CInt(lower.A) + CInt(upper.A) - CInt(CDbl(lower.A) * CDbl(upper.A) * i255))
+       If a > 0 Then
+            Dim w As Double = i255 * CDbl(lower.A) * (CDbl(Byte.MaxValue) - CDbl(upper.A))
+            r = Math.Min(Byte.MaxValue, CInt((CDbl(upper.R) * CDbl(upper.A) + CDbl(lower.R) * w) / a))
+            g = Math.Min(Byte.MaxValue, CInt((CDbl(upper.G) * CDbl(upper.A) + CDbl(lower.G) * w) / a))
+            b = Math.Min(Byte.MaxValue, CInt((CDbl(upper.B) * CDbl(upper.A) + CDbl(lower.B) * w) / a))
+        End If
+
+        's - upper ; d - lower
+        'RA = SA + DA × (1 − SA)
+        'RRGB = (SRGB×SA + DRGB×DA×(1 − SA)) / RA
+
+        Return Color.FromArgb(a, r, g, b)
+    End Function
 
 End Class
